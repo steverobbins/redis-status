@@ -155,12 +155,14 @@ $redisStatus = new RedisStatus('config.json');
 <body>
     <div id="main">
         <h1>Redis Status</h1>
+        <?php if (count($redisStatus->getServers()) > 1): ?>
         <ul id="nav">
             <?php foreach ($redisStatus->getServers() as $server => $redis): ?>
             <li><?php echo $server ?></li>
             <?php endforeach ?>
         </ul>
         <div class="clear"></div>
+        <?php endif ?>
         <div class="servers">
             <?php $i = 0 ?>
             <?php foreach ($redisStatus->getServers() as $server => $redis): ?>
@@ -182,11 +184,12 @@ $redisStatus = new RedisStatus('config.json');
                     charts[<?php echo $i ?>] = [];
                 <?php foreach (RedisStatus::getDatabases($redis) as $db): ?>
                     <?php $redis->select($db) ?>
+                    var color = getRandomColor();
                     charts[<?php echo $i ?>].push({
                         value: <?php echo $redis->dbSize() ?>,
                         label: 'Database <?php echo $db ?>',
-                        color: getRandomColor(),
-                        highlight: '#ddd'
+                        color: color,
+                        highlight: color
                     });
                 <?php endforeach ?>
                 </script>
