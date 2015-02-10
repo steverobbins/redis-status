@@ -2,6 +2,19 @@
 
 ini_set('display_errors', 1);
 
+$config = array(
+    array(
+        'host'     => '127.0.0.1',
+        'port'     => 6379,
+    //    'password' => 'password'
+    ),
+    //array(
+    //    'host'     => '127.0.0.1',
+    //    'port'     => 6380,
+    //    'password' => 'password'
+    //),    
+);
+
 if (!extension_loaded('redis')) {
     throw new Exception('PHP Redis extension is not installed');
 }
@@ -11,38 +24,20 @@ class RedisStatus
     private $config;
     private $servers;
 
-    public function __construct($configFile)
+    public function __construct(array $config)
     {
-        $this->loadConfig($configFile);
-    }
-
-    public function loadConfig($configFile)
-    {
-        $fullPath = __DIR__ . DIRECTORY_SEPARATOR . $configFile;
-        if (is_readable($fullPath)) {
-            $this->config = json_decode(file_get_contents($fullPath));
-        } else {
-            $config = new stdClass();
-            $config->host = '127.0.0.1';
-            $config->port = '6379';
-            $this->config = array($config);
-        }
-    }
-
-    public function getConfig()
-    {
-        return $this->config;
+        $this->config = $config;
     }
 
     public function getServers()
     {
         if (is_null($this->servers)) {
             $this->servers = array();
-            foreach ($this->getConfig() as $instance) {
+            foreach ($this->config as $instance) {
 
                 $redis = new Redis();
-                $redis->connect($instance->host, $instance->port);
-                $password = isset($instance->password) ? $instance->password : false;
+                $redis->connect($instance['host'], $instance['port']);
+                $password = isset($instance['password']) ? $instance['password'] : false;
                 if ($password) {
                     try {
                         $redis->auth($password);
@@ -50,7 +45,7 @@ class RedisStatus
                         // intentionally left blank
                     }
                 }
-                $this->servers[$instance->host . ':' . $instance->port] = $redis;
+                $this->servers[$instance['host'] . ':' . $instance['port']] = $redis;
             }
         }
         return $this->servers;
@@ -64,13 +59,34 @@ class RedisStatus
     }
 }
 
-$redisStatus = new RedisStatus('config.json');
+function getColor($i)
+{
+    switch ($i % 5) {
+        case 0:
+            return '#F7464A';
+            break;
+        case 1:
+            return '#46BFBD';
+            break;
+        case 2:
+            return '#FDB45C';
+            break;
+        case 3:
+            return '#949FB1';
+            break;
+        default:
+            return '#4D5360';
+    }
+}
+
+$redisStatus = new RedisStatus($config);
 
 ?><!DOCTYPE html>
 <meta charset="utf-8">
 <html>
 <head>
     <title>Redis Status</title>
+    <meta http-equiv="refresh" content="60" />
     <style type="text/css">
         body {
             font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -142,14 +158,6 @@ $redisStatus = new RedisStatus('config.json');
     </style>
     <script>
         var charts = [];
-        function getRandomColor() {
-            var letters = '0123456789ABCDEF'.split('');
-            var color = '#';
-            for (var i = 0; i < 6; i++ ) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
     </script>
 </head>
 <body>
@@ -182,14 +190,14 @@ $redisStatus = new RedisStatus('config.json');
                 </div>
                 <script>
                     charts[<?php echo $i ?>] = [];
+                <?php $j = 0 ?>
                 <?php foreach (RedisStatus::getDatabases($redis) as $db): ?>
                     <?php $redis->select($db) ?>
-                    var color = getRandomColor();
                     charts[<?php echo $i ?>].push({
                         value: <?php echo $redis->dbSize() ?>,
                         label: 'Database <?php echo $db ?>',
-                        color: color,
-                        highlight: color
+                        color: '<?php echo getColor($j) ?>',
+                        highlight: '<?php echo getColor($j++) ?>'
                     });
                 <?php endforeach ?>
                 </script>
@@ -271,7 +279,9 @@ $redisStatus = new RedisStatus('config.json');
         });
         for (var i = 1; i < charts.length; i++) {
             new Chart(document.getElementById('chart-' + i).getContext('2d'))
-                .Pie(charts[i]);
+                .Pie(charts[i], {
+                    animateRotate: false
+                });
         }
     </script>
 </body>        
