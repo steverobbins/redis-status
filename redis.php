@@ -1,18 +1,16 @@
 <?php
 
-ini_set('display_errors', 1);
-
 $config = array(
     array(
-        'host'     => '127.0.0.1',
-        'port'     => 6379,
-    //    'password' => 'password'
+        'host' => '127.0.0.1',
+        'port' => 6379
     ),
     //array(
     //    'host'     => '127.0.0.1',
     //    'port'     => 6380,
     //    'password' => 'password'
-    //),    
+    //),
+    // etc
 );
 
 if (!extension_loaded('redis')) {
@@ -21,14 +19,36 @@ if (!extension_loaded('redis')) {
 
 class RedisStatus
 {
+    /**
+     * List of redis servers
+     * 
+     * @var array
+     */
     private $config;
+
+    /**
+     * Sorted list of servers
+     * 
+     * @var array
+     */
     private $servers;
 
+    /**
+     * Save config value
+     * 
+     * @param array $config
+     * @return void
+     */
     public function __construct(array $config)
     {
         $this->config = $config;
     }
 
+    /**
+     * Collect config values and instanciate Redis objects
+     * 
+     * @return void
+     */
     public function getServers()
     {
         if (is_null($this->servers)) {
@@ -51,6 +71,12 @@ class RedisStatus
         return $this->servers;
     }
 
+    /**
+     * Get databases that exist in Redis instance
+     * 
+     * @param  Redis  $redis
+     * @return array
+     */
     public static function getDatabases(Redis $redis)
     {
         return array_map(function($db) {
@@ -59,6 +85,12 @@ class RedisStatus
     }
 }
 
+/**
+ * Get the next chart color
+ * 
+ * @param  integer $i
+ * @return string
+ */
 function getColor($i)
 {
     switch ($i % 5) {
@@ -79,6 +111,9 @@ function getColor($i)
     }
 }
 
+/**
+ * @var RedisStatus
+ */
 $redisStatus = new RedisStatus($config);
 
 ?><!DOCTYPE html>
@@ -89,7 +124,7 @@ $redisStatus = new RedisStatus($config);
     <meta http-equiv="refresh" content="60" />
     <style type="text/css">
         body {
-            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
@@ -140,9 +175,6 @@ $redisStatus = new RedisStatus($config);
         table {
             border-collapse: collapse;
         }
-        table tr {
-            
-        }
         table tr th, table tr td {
             text-align: left;
             background: #eee;
@@ -151,9 +183,6 @@ $redisStatus = new RedisStatus($config);
         }
         table tr th {
             text-align: right;
-        }
-        table tr td {
-            
         }
     </style>
     <script>
@@ -252,18 +281,6 @@ $redisStatus = new RedisStatus($config);
                     </tr>
                 </table>
                 <div class="clear"></div>
-                <?php /* foreach (RedisStatus::getDatabases($redis) as $db): ?>
-                <div class="database">
-                    <h3>Database <?php echo $db ?></h3>
-                    <?php $redis->select($db) ?>
-                    <table>
-                        <tr>
-                            <th>Key Count</th>
-                            <td><?php echo $redis->dbSize() ?></td>
-                        </tr>
-                    </table>
-                </div>
-                <?php endforeach */ ?>
             </div>
             <?php endforeach ?>
         </div>
