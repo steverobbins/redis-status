@@ -125,39 +125,14 @@ $redisStatus = new RedisStatus($config);
         body {
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 0 0 20px 0;
         }
         #main {
             margin: 0 auto;
             width: 960px;
         }
-        #nav {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
-        #nav li {
-            background: #eee;
-            display: block;
-            float: left;
-            padding: 15px;
-            cursor: pointer;
-            border: 1px solid #ddd;
-        }
-        #nav li + li {
-            margin-left: 20px;
-        }
-        #nav li:hover {
-            background: #ddd;
-        }
         .clear {
             clear: both;
-        }
-        .server {
-            display: none;
-        }
-        .server.active {
-            display: block;
         }
         .server, .database {
             padding: 0 20px 20px;
@@ -191,18 +166,10 @@ $redisStatus = new RedisStatus($config);
 <body>
     <div id="main">
         <h1>Redis Status</h1>
-        <?php if (count($redisStatus->getServers()) > 1): ?>
-        <ul id="nav">
-            <?php foreach ($redisStatus->getServers() as $server => $redis): ?>
-            <li><?php echo $server ?></li>
-            <?php endforeach ?>
-        </ul>
-        <div class="clear"></div>
-        <?php endif ?>
         <div class="servers">
             <?php $i = 0 ?>
             <?php foreach ($redisStatus->getServers() as $server => $redis): ?>
-            <div class="server<?php echo !$i++ ? ' active' : '' ?>">
+            <div class="server">
                 <h2><?php echo $server ?></h2>
                 <?php
                     try {
@@ -214,7 +181,7 @@ $redisStatus = new RedisStatus($config);
                 ?>
                 <div class="chart">
                     <h4>Keys</h4>
-                    <canvas id="chart-<?php echo $i ?>" width="400" height="400"></canvas>
+                    <canvas id="chart-<?php echo ++$i ?>" width="400" height="400"></canvas>
                 </div>
                 <script>
                     charts[<?php echo $i ?>] = [];
@@ -284,15 +251,8 @@ $redisStatus = new RedisStatus($config);
             <?php endforeach ?>
         </div>
     </div>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.1/Chart.min.js"></script>
     <script>
-        $(document).ready(function() {
-            $('#nav li').click(function() {
-                $('.server.active').removeClass('active');
-                $('.server').eq($(this).index()).addClass('active');
-            });
-        });
         for (var i = 1; i < charts.length; i++) {
             new Chart(document.getElementById('chart-' + i).getContext('2d'))
                 .Pie(charts[i], {
