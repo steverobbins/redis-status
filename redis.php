@@ -121,7 +121,6 @@ $redisStatus = new RedisStatus($config);
 <html>
 <head>
     <title>Redis Status</title>
-    <meta http-equiv="refresh" content="60" />
     <style type="text/css">
         body {
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
