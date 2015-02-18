@@ -1,5 +1,9 @@
 <?php
 
+if (!extension_loaded('redis')) {
+    throw new Exception('Required PHP Redis extension is not installed');
+}
+
 $config = array(
     array(
         'host' => '127.0.0.1',
@@ -13,9 +17,19 @@ $config = array(
     // etc
 );
 
-if (!extension_loaded('redis')) {
-    throw new Exception('PHP Redis extension is not installed');
-}
+$redisKeys = array(
+    'redis_version'          => 'Version',
+    'uptime_in_seconds'      => 'Uptime',
+    'connected_clients'      => 'Connected Clients',
+    'connected_slaves'       => 'Connected Slaves',
+    'used_memory_human'      => 'Used Memory',
+    'used_memory_peak_human' => 'Peak Used Memory',
+    'expired_keys'           => 'Expired Keys',
+    'evicted_keys'           => 'Evicted Keys',
+    'keyspace_hits'          => 'Keyspace Hits',
+    'keyspace_misses'        => 'Keyspace Misses'
+
+);
 
 class RedisStatus
 {
@@ -74,7 +88,7 @@ class RedisStatus
     /**
      * Get databases that exist in Redis instance
      * 
-     * @param  Redis  $redis
+     * @param  Redis $redis
      * @return array
      */
     public static function getDatabases(Redis $redis)
@@ -210,54 +224,22 @@ $redisStatus = new RedisStatus($config);
                 <?php endforeach ?>
                 </script>
                 <table>
+                    <?php foreach ($redisKeys as $key => $label): ?>
                     <tr>
-                        <th>Version</th>
-                        <td><?php echo $info['redis_version'] ?></td>
-                    </tr>
-                    <tr>
-                        <th>Uptime</th>
+                        <th><?php echo $label ?></th>
+                        <?php if ($key == 'uptime_in_seconds'): ?>
                         <td><?php printf(
                             '%s day(s) %02d:%02d:%02d',
-                            floor($info['uptime_in_seconds'] / 86400),
-                            floor($info['uptime_in_seconds'] / 3600) % 24,
-                            floor($info['uptime_in_seconds'] / 60) % 60,
-                            floor($info['uptime_in_seconds'] % 60)
+                            floor($info[$key] / 86400),
+                            floor($info[$key] / 3600) % 24,
+                            floor($info[$key] / 60) % 60,
+                            floor($info[$key] % 60)
                         ) ?></td>
+                        <?php else: ?>
+                        <td><?php echo $info[$key] ?></td>
+                        <?php endif ?>
                     </tr>
-                    <tr>
-                        <th>Connected Clients</th>
-                        <td><?php echo $info['connected_clients'] ?></td>
-                    </tr>
-                    <?php if ($info['connected_slaves']): ?>
-                    <tr>
-                        <th>Connected Slaves</th>
-                        <td><?php echo $info['connected_slaves'] ?></td>
-                    </tr>
-                    <?php endif ?>
-                    <tr>
-                        <th>Used Memory</th>
-                        <td><?php echo $info['used_memory_human'] ?></td>
-                    </tr>
-                    <tr>
-                        <th>Peak Used Memory</th>
-                        <td><?php echo $info['used_memory_peak_human'] ?></td>
-                    </tr>
-                    <tr>
-                        <th>Expired Keys</th>
-                        <td><?php echo $info['expired_keys'] ?></td>
-                    </tr>
-                    <tr>
-                        <th>Evicted Keys</th>
-                        <td><?php echo $info['evicted_keys'] ?></td>
-                    </tr>
-                    <tr>
-                        <th>Keyspace Hits</th>
-                        <td><?php echo $info['keyspace_hits'] ?></td>
-                    </tr>
-                    <tr>
-                        <th>Keyspace Misses</th>
-                        <td><?php echo $info['keyspace_misses'] ?></td>
-                    </tr>
+                    <?php endforeach ?>
                 </table>
                 <div class="clear"></div>
             </div>
