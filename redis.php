@@ -121,6 +121,9 @@ $redisStatus = new RedisStatus($config);
 <html>
 <head>
     <title>Redis Status</title>
+    <?php if (isset($_GET['refresh']) && $_GET['refresh'] > 0): ?>
+    <meta http-equiv="refresh" content="<?php echo $_GET['refresh'] ?>" />
+    <?php endif ?>
     <style type="text/css">
         body {
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -130,6 +133,13 @@ $redisStatus = new RedisStatus($config);
         #main {
             margin: 0 auto;
             width: 960px;
+        }
+        #refresh {
+            float: right;
+            font-size: 12px;
+        }
+        #refresh input[type="text"] {
+            width: 20px;
         }
         .clear {
             clear: both;
@@ -165,6 +175,12 @@ $redisStatus = new RedisStatus($config);
 </head>
 <body>
     <div id="main">
+        <form id="refresh" action="" method="get">
+            <label>Refresh interval (seconds)
+                <input type="text" name="refresh" value="<?php echo isset($_GET['refresh']) ? $_GET['refresh'] : 0 ?>" />
+            </label>
+            <input type="submit" value="Set" />
+        </form>
         <h1>Redis Status</h1>
         <div class="servers">
             <?php $i = 0 ?>
