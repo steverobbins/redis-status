@@ -81,7 +81,7 @@ class RedisStatus
     {
         return array_map(function($db) {
             return (int) substr($db, 2);
-        }, preg_grep("/^db[0-9]+$/", array_flip($redis->info())));
+        }, preg_grep("/^db[0-9]+$/", array_keys($redis->info())));
     }
 }
 
@@ -93,21 +93,18 @@ class RedisStatus
  */
 function getColor($i)
 {
-    switch ($i % 5) {
+    if ($i == 0) {
+        return '#3392db';
+    }
+    switch ($i % 4) {
         case 0:
-            return '#F7464A';
-            break;
-        case 1:
-            return '#46BFBD';
-            break;
-        case 2:
-            return '#FDB45C';
-            break;
-        case 3:
-            return '#949FB1';
-            break;
-        default:
             return '#4D5360';
+        case 1:
+            return '#F7464A';
+        case 2:
+            return '#46BFBD';
+        default:
+            return '#FDB45C';
     }
 }
 
@@ -122,7 +119,7 @@ $redisStatus = new RedisStatus($config);
 <head>
     <title>Redis Status</title>
     <?php if (isset($_GET['refresh']) && $_GET['refresh'] > 0): ?>
-    <meta http-equiv="refresh" content="<?php echo $_GET['refresh'] ?>" />
+    <meta http-equiv="refresh" content="<?php echo (int)$_GET['refresh'] ?>" />
     <?php endif ?>
     <style type="text/css">
         body {
