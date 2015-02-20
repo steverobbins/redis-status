@@ -202,7 +202,7 @@ $redisStatus = new RedisStatus($config);
                     try {
                         $info = $redis->info();
                     } catch (Exception $e) {
-                        echo $e->getMessage();
+                        echo $e->getMessage() . '</div>';
                         continue;
                     }
                 ?>
