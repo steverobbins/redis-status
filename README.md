@@ -7,4 +7,3 @@ A one-page status page for Redis.
 
 ### Requirements
 * PHP 5.3+
-* PHP Redis

@@ -1,7 +1,21 @@
 <?php
 
-if (!extension_loaded('redis')) {
-    throw new Exception('Required PHP Redis extension is not installed');
+$credisFile = __DIR__ . DIRECTORY_SEPARATOR . 'Credis_Client.php';
+
+if (is_readable($credisFile)) {
+    require_once $credisFile;
+    class Redis_Wrap extends Credis_Client {}
+} elseif (extension_loaded('redis')) {
+    class Redis_Wrap extends Redis {}
+} else {
+    echo <<<HTML
+<h3>Error: PHP Redis/Credis Client not installed.</h3>
+<p>We are not able to show this page as required tools are missing.  To solve this:</p>
+<ul>
+    <li>Install the PHP Redis extension</li>
+    <li>or, download the <a href="https://github.com/colinmollenhour/credis/blob/master/Client.php">Credis Client</a> and place it at <b>$credisFile</b></li>
+HTML;
+    exit;
 }
 
 $config = array(
@@ -68,8 +82,7 @@ class RedisStatus
         if (is_null($this->servers)) {
             $this->servers = array();
             foreach ($this->config as $instance) {
-
-                $redis = new Redis();
+                $redis = new Redis_Wrap();
                 $redis->connect($instance['host'], $instance['port']);
                 $password = isset($instance['password']) ? $instance['password'] : false;
                 if ($password) {
@@ -88,10 +101,10 @@ class RedisStatus
     /**
      * Get databases that exist in Redis instance
      * 
-     * @param  Redis $redis
+     * @param  Redis_Wrap $redis
      * @return array
      */
-    public static function getDatabases(Redis $redis)
+    public static function getDatabases(Redis_Wrap $redis)
     {
         return array_map(function($db) {
             return (int) substr($db, 2);
