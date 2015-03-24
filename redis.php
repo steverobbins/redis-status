@@ -222,7 +222,7 @@ $redisStatus = new RedisStatus($config);
                     }
                 ?>
                 <div class="chart">
-                    <h4>Keys</h4>
+                    <h4>Databases</h4>
                     <canvas id="chart-<?php echo ++$i ?>" width="400" height="400"></canvas>
                 </div>
                 <script>
