@@ -4,10 +4,7 @@ $credisFile = __DIR__ . DIRECTORY_SEPARATOR . 'Credis_Client.php';
 
 if (is_readable($credisFile)) {
     require_once $credisFile;
-    class Redis_Wrap extends Credis_Client {}
-} elseif (extension_loaded('redis')) {
-    class Redis_Wrap extends Redis {}
-} else {
+} elseif (!extension_loaded('redis')) {
     echo <<<HTML
 <h3>Error: PHP Redis/Credis Client not installed.</h3>
 <p>We are not able to show this page as required tools are missing.  To solve this:</p>
@@ -33,6 +30,7 @@ $config = array(
 
 $redisKeys = array(
     'redis_version'          => 'Version',
+    'config_file'            => 'Config File',
     'uptime_in_seconds'      => 'Uptime',
     'connected_clients'      => 'Connected Clients',
     'connected_slaves'       => 'Connected Slaves',
@@ -82,14 +80,18 @@ class RedisStatus
         if (is_null($this->servers)) {
             $this->servers = array();
             foreach ($this->config as $instance) {
-                $redis = new Redis_Wrap();
-                $redis->connect($instance['host'], $instance['port']);
-                $password = isset($instance['password']) ? $instance['password'] : false;
-                if ($password) {
-                    try {
-                        $redis->auth($password);
-                    } catch (Exception $e) {
-                        // intentionally left blank
+                $password = isset($instance['password']) ? $instance['password'] : null;
+                if (class_exists('Credis_Client')) {
+                    $redis = new Credis_Client($instance['host'], $instance['port'], null, '', 0, $password);
+                } else {
+                    $redis = new Redis();
+                    $redis->connect($instance['host'], $instance['port']);
+                    if ($password) {
+                        try {
+                            $redis->auth($password);
+                        } catch (Exception $e) {
+                            // intentionally left blank
+                        }
                     }
                 }
                 $this->servers[$instance['host'] . ':' . $instance['port']] = $redis;
@@ -101,10 +103,10 @@ class RedisStatus
     /**
      * Get databases that exist in Redis instance
      * 
-     * @param  Redis_Wrap $redis
+     * @param  Credis_Client|Redis $redis
      * @return array
      */
-    public static function getDatabases(Redis_Wrap $redis)
+    public static function getDatabases($redis)
     {
         return array_map(function($db) {
             return (int) substr($db, 2);
