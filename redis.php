@@ -11,6 +11,7 @@ if (is_readable($credisFile)) {
 <ul>
     <li>Install the PHP Redis extension</li>
     <li>or, download the <a href="https://github.com/colinmollenhour/credis/blob/master/Client.php">Credis Client</a> and place it at <b>$credisFile</b></li>
+</ul>
 HTML;
     exit;
 }
